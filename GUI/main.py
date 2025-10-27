@@ -1,13 +1,56 @@
 import tkinter as tk
-# import pyserial  # Ha már kitaláltuk miként és hogyan lesz serial kommunikáció
+from tkinter import ttk
+from tkinter import messagebox
+import serial
+import serial.tools.list_ports
+import threading # utálom nagyon rossz de muszáj ha tkinterrel akarom csinálni, külön szálon kell futtnia a serial kezelésnek és a tkinter loopnak
 
-# tkinter ablak inicializálása
-window = tk.Tk()
-window.title("LED Villogtató")
-window.geometry("300x330")
-window.resizable(False, False)
+serial_port = None
+serial_port_lock = threading.Lock()
 
-# --------------------------Függvények--------------------------
+def set_status(text, color="#000000"):
+    # külön szálon frissítse az állapot labelt
+    window.after(0, lambda: allapot.config(text=text, fg=color))
+
+def show_exception(message, title="Hiba"):
+    # A hiba ablak besorolása
+    window.after(0, lambda: messagebox.showerror(title, message))
+
+def connect_serial(asd=None):
+    # Serial kapcsolat kezelés külön szálon
+    def worker():
+        global serial_port
+        port = port_var.get()
+
+        # már nyitott portot zárjuk
+        with serial_port_lock:
+            if serial_port and serial_port.is_open:
+                try:
+                    serial_port.close()
+                except Exception:
+                    pass
+                serial_port = None
+
+        if not port:
+            set_status("Lecsatlakozva", "#ff0000")
+            return
+
+        try:
+            sp = serial.Serial(port, baudrate=9600, timeout=1)
+        except Exception as e:
+            with serial_port_lock:
+                serial_port = None
+            # hiba popup
+            show_exception(str(e), "Soros csatlakozás hiba")
+            set_status("Lecsatlakozva", "#ff0000")
+            return
+
+        # nyitott port mentése
+        with serial_port_lock:
+            serial_port = sp
+        set_status(f"Csatlakoztatva: {port}", "#008000")
+
+    threading.Thread(target=worker, daemon=True).start()
 
 def refresh(bpm_ertek):
     # BPM kiszámólása alapján frissíti a bekapcs és kikapcs mezőket
@@ -18,12 +61,37 @@ def refresh(bpm_ertek):
     kikapcs.insert(0, kikapcs_ido)
     
 def ido_kuldes():
-    bekapcs_ido = bekapcs.get()
-    kikapcs_ido = kikapcs.get()
+    # Meg lesz változtatva arra hogy ne is lehessen betűket beírni, addíg ez van
+    try:
+        bekapcs_ido = int(bekapcs.get())
+        kikapcs_ido = int(kikapcs.get())
+    except ValueError:
+        set_status("Érvénytelen szám", "#ff0000")
+        return
 
-    # Amíg nincs serialos téma addig csak kiíratom a konzolra
-    print(f"Bekapcsolt idő: {bekapcs_ido} ms")
-    print(f"Kikapcsolt idő: {kikapcs_ido} ms")
+    # A serial adatküldés kezelése
+    def worker():
+        with serial_port_lock:
+            sp = serial_port
+
+        if sp and sp.is_open:
+            try:
+                line = f"{bekapcs_ido},{kikapcs_ido}\n"
+                sp.write(line.encode("utf-8"))
+                set_status("Siker!", "#008000")
+            except Exception as e:
+                show_exception(str(e), "Küldési hiba")
+                set_status("Lecsatlakozva", "#ff0000")
+        else:
+            set_status("Nincs csatlakoztatva port", "#ff0000")
+
+    threading.Thread(target=worker, daemon=True).start() # nem tudom hogyan de mukodik
+
+# tkinter ablak inicializálása
+window = tk.Tk()
+window.title("LED Villogtató")
+window.geometry("300x330")
+window.resizable(False, False)
 
 # --------------------------GUI elemek--------------------------
 
@@ -73,6 +141,19 @@ bpm.pack(pady=4)
 tk.Label(right_frame, text="Állapot", font=("Comic Sans MS", 10, "bold")).pack(padx=8, pady=8)
 allapot = tk.Label(right_frame, text="Lecsatlakozva", font=("Comic Sans MS", 10), fg="#ff0000") # Állapot címke
 allapot.pack(pady=4)
+
 tk.Button(right_frame, text="Küldés", font=("Comic Sans MS", 10), command=ido_kuldes).pack(pady=20) # Küldés gomb
+tk.Label(right_frame, text="Soros Port:", font=("Comic Sans MS", 8)).pack(pady=4)
+
+# port lista (dinamikusan frissíti elérhető portok alapján)
+ports = [p.device for p in serial.tools.list_ports.comports()]
+if not ports:
+    ports = ["COM1", "COM2", "COM3"]
+port_var = tk.StringVar(value=ports[0] if ports else "")
+port_combo = ttk.Combobox(right_frame, textvariable=port_var, values=ports, state="readonly", width=10) # Soros port legördülő menü
+port_combo.pack(pady=4)
+port_combo.bind("<<ComboboxSelected>>", connect_serial)
+# Egyszer próbálkozik csak, ne tartson sok időbe ha nem sikerül
+connect_serial()
 
 window.mainloop()

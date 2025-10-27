@@ -8,3 +8,9 @@
         - GUI elemek elhelyezve még funkció nélkül
         - BPM átszámolása bekapcs kikapcs időbe függvény
         - README.md frissítve
+    
+    v0.2
+        - Serial kapcsolat implementálva
+        - COM port választó input
+        - Státusz label a serial kapcsolat alapján frissül
+        - Threading-el több szálon futtatás mivel a tkinter loopban elindított serial kapcsolat timeout-hoz vezet
