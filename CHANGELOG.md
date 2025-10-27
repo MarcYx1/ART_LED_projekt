@@ -1,7 +1,9 @@
 ## Changelog
 
 # firmware
-
+    v0.1
+        - Worskpace feltöltve
+        - Még csak hardcode-olt villogás
 # GUI
     v0.1
         - Alap GUI felépítve tkinterrel
