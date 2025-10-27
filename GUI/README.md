@@ -8,10 +8,10 @@ Rövid leírás
  - Küldés gomb ami a seriállal a mikrokontrollerre küldi a bekapcs kikapcs időt
 
 TODO-k
- - Serial port integráció (valszeg pyserial-al) és a küldés tényleges implementálása.
- - Az entry-k jelenleg bármilyen szöveget befogadnak (tkinter csodája) csak számokat engedjen
+ - ✓ Serial port integráció (valszeg pyserial-al) és a küldés tényleges implementálása.
+ - ✓ Az entry-k jelenleg bármilyen szöveget befogadnak (tkinter csodája) csak számokat engedjen
  - A BPM mező törlése ha kézzel átírom a bekapcs vagy kikapcs időt
- - Választható serial port és az "Állapot" label valós idejű frissítése.
+ - ✓ Választható serial port és az "Állapot" label valós idejű frissítése.
  - Ha minden kész buildelni exe-be (valszeg pyinstaller)
 
 Fontos:

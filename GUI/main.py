@@ -55,16 +55,15 @@ def connect_serial(asd=None):
 def refresh(bpm_ertek):
     # BPM kiszámólása alapján frissíti a bekapcs és kikapcs mezőket
     kikapcs_ido = bekapcs_ido = round(60000 / (int(bpm_ertek) * 2)) if bpm_ertek.isdigit() and int(bpm_ertek) > 0 else 0
-    bekapcs.delete(0, tk.END)
-    kikapcs.delete(0, tk.END)
-    bekapcs.insert(0, bekapcs_ido)
-    kikapcs.insert(0, kikapcs_ido)
+    # update StringVars instead of direct Entry manipulation
+    bekapcs_var.set(str(bekapcs_ido))
+    kikapcs_var.set(str(kikapcs_ido))
     
 def ido_kuldes():
     # Meg lesz változtatva arra hogy ne is lehessen betűket beírni, addíg ez van
     try:
-        bekapcs_ido = int(bekapcs.get())
-        kikapcs_ido = int(kikapcs.get())
+        bekapcs_ido = int(bekapcs_var.get())
+        kikapcs_ido = int(kikapcs_var.get())
     except ValueError:
         set_status("Érvénytelen szám", "#ff0000")
         return
@@ -93,6 +92,13 @@ window.title("LED Villogtató")
 window.geometry("300x330")
 window.resizable(False, False)
 
+# numeric input validator (allow only digits or empty)
+def validate_numeric(P):
+    return P == "" or P.isdigit()
+
+# register validator with the Tk window
+vcmd = window.register(validate_numeric)
+
 # --------------------------GUI elemek--------------------------
 
 # Cím
@@ -118,20 +124,24 @@ right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 # LED sebesség beállítások bal oldalon
 tk.Label(left_frame, text="LED Sebesség", font=("Comic Sans MS", 10, "bold")).pack(padx=8, pady=8)
 
-# Bekapcsolt idő mező
+# use StringVar for bekapcs and kikapcs so we can set them from code
+bekapcs_var = tk.StringVar()
+kikapcs_var = tk.StringVar()
+
+# Bekapcsolt idő mező (numeric only)
 tk.Label(left_frame, text="Bekapcs. idő (ms)", font=("Comic Sans MS", 10)).pack(pady=4)
-bekapcs = tk.Entry(left_frame, width=10) # Bekapcs mező
+bekapcs = tk.Entry(left_frame, width=10, textvariable=bekapcs_var, validate='key', validatecommand=(vcmd, '%P'))
 bekapcs.pack(pady=4)
 
-# kikapcsolt idő mező
+# kikapcsolt idő mező (numeric only)
 tk.Label(left_frame, text="Kikapcs. idő (ms)", font=("Comic Sans MS", 10)).pack(pady=4)
-kikapcs = tk.Entry(left_frame, text="kikapcs", width=10) # Kikapcs mező
+kikapcs = tk.Entry(left_frame, width=10, textvariable=kikapcs_var, validate='key', validatecommand=(vcmd, '%P'))
 kikapcs.pack(pady=4)
 
-# BPM mező
+# BPM mező (numeric only)
 tk.Label(left_frame, text="BPM", font=("Comic Sans MS", 10)).pack(pady=4)
 bpm_var = tk.StringVar() # Tkinter StringVar a BPM érték tárolására (ennek segítségével tudom frissíteni a másik két mezőt)
-bpm = tk.Entry(left_frame, width=10, textvariable=bpm_var) # BPM mező
+bpm = tk.Entry(left_frame, width=10, textvariable=bpm_var, validate='key', validatecommand=(vcmd, '%P')) # BPM mező
 bpm_var.trace_add("write", lambda *args: refresh(bpm_var.get())) # Automatikus frissítse a bekapcs és kikapcs mezőt a BPM alapján
 bpm.pack(pady=4)
 
