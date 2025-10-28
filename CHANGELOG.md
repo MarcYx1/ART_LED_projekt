@@ -20,3 +20,7 @@
     v0.3
         - Mostmár csak számokat lehet beírni a mezőkbe
         - Readme frissítve (v0.2 és v0.3 változásokkal)
+
+    v0.4
+        - Hozzáadtam egy "Frissítés" gombot ami a COM portok listáját frissíti
+        - Readme frissítve

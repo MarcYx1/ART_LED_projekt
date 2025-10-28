@@ -77,7 +77,7 @@ def ido_kuldes():
             try:
                 line = f"{bekapcs_ido},{kikapcs_ido}\n"
                 sp.write(line.encode("utf-8"))
-                set_status("Siker!", "#008000")
+                set_status("Elküldve", "#008000")
             except Exception as e:
                 show_exception(str(e), "Küldési hiba")
                 set_status("Lecsatlakozva", "#ff0000")
@@ -89,7 +89,7 @@ def ido_kuldes():
 # tkinter ablak inicializálása
 window = tk.Tk()
 window.title("LED Villogtató")
-window.geometry("300x330")
+window.geometry("300x350")
 window.resizable(False, False)
 
 # numeric input validator (allow only digits or empty)
@@ -158,11 +158,12 @@ tk.Label(right_frame, text="Soros Port:", font=("Comic Sans MS", 8)).pack(pady=4
 # port lista (dinamikusan frissíti elérhető portok alapján)
 ports = [p.device for p in serial.tools.list_ports.comports()]
 if not ports:
-    ports = ["COM1", "COM2", "COM3"]
+    ports = ["Nincs elérhető port"]
 port_var = tk.StringVar(value=ports[0] if ports else "")
 port_combo = ttk.Combobox(right_frame, textvariable=port_var, values=ports, state="readonly", width=10) # Soros port legördülő menü
 port_combo.pack(pady=4)
 port_combo.bind("<<ComboboxSelected>>", connect_serial)
+tk.Button(right_frame, text="Frissít", font=("Comic Sans MS", 8), command=lambda: port_combo.configure(values=[p.device for p in serial.tools.list_ports.comports()])).pack(pady=4) # COM port lista frissítéséhez
 # Egyszer próbálkozik csak, ne tartson sok időbe ha nem sikerül
 connect_serial()
 
