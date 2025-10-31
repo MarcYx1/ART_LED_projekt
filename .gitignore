@@ -1,1 +1,5 @@
 league_of_legends.exe
+/dist
+/build
+*.ico
+*.spec

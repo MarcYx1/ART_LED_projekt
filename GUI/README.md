@@ -13,7 +13,7 @@ TODO-k
  - A BPM mező törlése ha kézzel átírom a bekapcs vagy kikapcs időt
  - ✓ Választható serial port és az "Állapot" label valós idejű frissítése.
  - ✓ COM port lista frissítő gomb
- - Ha minden kész buildelni exe-be (valszeg pyinstaller)
+ - ✓ Ha minden kész buildelni exe-be (valszeg pyinstaller)
 
 Fontos:
 Egyenlőre ez csak nagyon ideiglenes ablak, valószínüleg sokat fog változni még a beágy.-os igényektől függően

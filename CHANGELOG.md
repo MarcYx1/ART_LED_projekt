@@ -24,3 +24,6 @@
     v0.4
         - Hozzáadtam egy "Frissítés" gombot ami a COM portok listáját frissíti
         - Readme frissítve
+
+    v0.5
+        - .pyw-re átneveztem hogy futtató cmd ne látszódjon
