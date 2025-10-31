@@ -22,7 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+void Led_SetTimings(uint32_t on_ms, uint32_t off_ms);
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,7 +94,8 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-
+	static char linebuf[32];
+	static uint8_t lidx = 0;
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -261,6 +262,46 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
+	for(uint32_t i=0; i< *Len; i++)
+	{
+		char c = (char)Buf[i];
+
+		if(c=='\n'|| c== '\r')
+		{
+			if(lidx>0)
+			{
+				 linebuf[lidx]='\0';
+				 char* comma = strchr(linebuf,',');
+				 if(comma)
+				 {
+					 *comma = '\0';
+					 unsigned long on_ms = strtoul(linebuf , NULL, 10);
+					 unsigned long off_ms = strtoul(comma+1 , NULL, 10);
+
+					 Led_SetTimings((uint32_t)on_ms, (uint32_t)off_ms);
+
+				 }
+			}
+			lidx=0;
+		}
+		else
+		{
+			if(lidx<sizeof(linebuf)-1)
+			{
+				linebuf[lidx++]=c;
+			}
+			else
+			{
+				lidx=0;
+			}
+
+		}
+
+
+
+	}
+
+
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);

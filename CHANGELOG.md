@@ -4,6 +4,9 @@
     v0.1
         - Worskpace feltöltve
         - Még csak hardcode-olt villogás
+    
+    v0.2
+        - Fogadja serialon a adatokat és müködik a villogtatás
 # GUI
     v0.1
         - Alap GUI felépítve tkinterrel

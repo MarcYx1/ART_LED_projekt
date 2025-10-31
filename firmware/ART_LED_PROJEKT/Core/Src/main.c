@@ -44,7 +44,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+	volatile uint32_t l_on_ms= 300;
+	volatile uint32_t l_off_ms = 300;
+	static uint32_t kov_kapcs_ido = 0;
+	static uint8_t led_on = 0;
+	static GPIO_TypeDef* LED_PORT = GPIOE;
+	static const uint16_t LED_PIN = GPIO_PIN_3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,12 +57,24 @@ void SystemClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-
+void Led_SetTimings(uint32_t on_ms, uint32_t off_ms);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void Led_SetTimings(uint32_t on_ms, uint32_t off_ms)
+{
+	if(on_ms < 10) on_ms = 10;
+	if(off_ms < 10) off_ms = 10;
+	if(on_ms > 5000) on_ms = 5000;
+	if(off_ms > 5000) off_ms = 5000;
 
+	__disable_irq();
+	l_on_ms = on_ms;
+	l_off_ms = off_ms;
+	__enable_irq();
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -68,10 +85,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	volatile uint32_t per_ms= 500;
-	static uint32_t kov_kapcs_ido = 0;
-	static GPIO_TypeDef* LED_PORT = GPIOE;
-	static const uint16_t LED_PIN = GPIO_PIN_3;
+
 
   /* USER CODE END 1 */
 
@@ -108,11 +122,13 @@ int main(void)
 	  uint32_t most = HAL_GetTick();
 	  if((int32_t)(most-kov_kapcs_ido)>=0)
 	  {
-		  HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-		  uint32_t per = per_ms;
-		  if(per<50) per = 50;
-		  if(per>2000) per = 2000;
+		  led_on = !led_on;
+		  HAL_GPIO_WritePin(LED_PORT, LED_PIN , led_on? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+		  uint32_t per = led_on? l_on_ms : l_off_ms;
 		  kov_kapcs_ido = most + per;
+
+
 	  }
 
     /* USER CODE END WHILE */
